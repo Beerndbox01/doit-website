@@ -971,7 +971,7 @@ export default function App() {
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
       <HomeTopBar>
         <CompanyInfo>
-          <img src={import.meta.env.BASE_URL + 'logo-doit.webp'} alt="Do-IT Solutions" style={{ height: 48, marginBottom: -8 }} />
+          <h2>{'\u{1F5A5}\uFE0F'} Do-IT Solutions</h2>
           <div className="tagline">Nieuwe technologie, ouderwets goed.</div>
           <div className="meta">
             <span>{'\u{1F4CD}'} Gevestigd in Denekamp</span>
