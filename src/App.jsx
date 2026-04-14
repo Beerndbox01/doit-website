@@ -120,7 +120,11 @@ const HomeGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  @media (max-width: 640px) { grid-template-columns: 1fr; }
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    & > *:first-child { order: 1; }
+    & > *:last-child { order: 2; }
+  }
 `;
 
 const HomeTopBar = styled.div`
@@ -566,49 +570,8 @@ export default function App() {
       <Separator style={{ marginBottom: 12 }} />
 
       <HomeGrid>
-        {/* Left column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Contact block */}
-          <HomeSection variant="well">
-            <h3>{'\u{1F4E8}'} Contact</h3>
-            <p style={{ fontSize: 11, lineHeight: 1.5, margin: '0 0 8px', color: '#444' }}>
-              Heeft u een vraag of wilt u vrijblijvend overleggen?
-              Neem direct contact met ons op.
-            </p>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              <Button size="sm" primary onClick={() => go('contact')}>{'\u{1F4E8}'} Stuur e-mail</Button>
-              <Button size="sm" onClick={() => window.open(WA_LINK + '?text=Hallo%20Do-IT%20Solutions!%20Ik%20heb%20een%20vraag.', '_blank')}>{'\u{1F4AC}'} WhatsApp</Button>
-            </div>
-          </HomeSection>
-
-          {/* Pricing preview */}
-          <HomeSection variant="well">
-            <h3>{'\u{1F4B0}'} Prijsindicatie</h3>
-            <PricingCheckRow>
-              {PRICING_OPTIONS.map((o) => (
-                <PricingCheckItem key={o.id}>
-                  <Checkbox
-                    checked={pricingChecks[o.id]}
-                    onChange={() => togglePrice(o.id)}
-                    label=""
-                    style={{ marginRight: -4 }}
-                  />
-                  <span>{o.label}</span>
-                  <span className="price">{'\u20AC'}{o.price}</span>
-                </PricingCheckItem>
-              ))}
-            </PricingCheckRow>
-            <PriceTotal>
-              <div className="total-label">Per gebruiker / maand</div>
-              <div className="total-price">{'\u20AC'}{totalPrice}</div>
-              <div className="total-sub">excl. BTW {'\u2022'} maandelijks opzegbaar</div>
-            </PriceTotal>
-            <Button size="sm" style={{ marginTop: 8, width: '100%' }} onClick={() => go('prijzen')}>{'\u{1F4B0}'} Volledige prijzen bekijken</Button>
-          </HomeSection>
-        </div>
-
-        {/* Right column: services */}
-        <HomeSection variant="well">
+        {/* Left column: services (shown first on mobile) */}
+        <HomeSection variant="well" style={{ order: 1 }}>
           <h3>{'\u{1F4C1}'} Onze diensten</h3>
           {SERVICES.map((s) => (
             <ServiceLink key={s.id} onClick={() => { setActiveDienst(s.id); go('diensten'); }}>
@@ -621,6 +584,35 @@ export default function App() {
           ))}
           <Button size="sm" style={{ marginTop: 8, width: '100%' }} onClick={() => go('diensten')}>{'\u{1F4C1}'} Alle diensten bekijken</Button>
         </HomeSection>
+
+        {/* Right column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, order: 2 }}>
+          {/* Waarom wij */}
+          <HomeSection variant="well">
+            <h3>{'\u2B50'} Waarom Do-IT?</h3>
+            <div style={{ fontSize: 11, lineHeight: 1.5, color: '#444' }}>
+              <div style={{ padding: '3px 0', borderBottom: '1px dotted #dfdfdf' }}>{'\u{1F527}'} Ouderwetse betrouwbaarheid {'\u2014'} IT moet gewoon werken</div>
+              <div style={{ padding: '3px 0', borderBottom: '1px dotted #dfdfdf' }}>{'\u{1F91D}'} Vast aanspreekpunt dat uw bedrijf kent</div>
+              <div style={{ padding: '3px 0', borderBottom: '1px dotted #dfdfdf' }}>{'\u{1F4E6}'} Alles onder {'\u00E9\u00E9'}n dak {'\u2014'} {'\u00E9\u00E9'}n partner voor al uw IT</div>
+              <div style={{ padding: '3px 0', borderBottom: '1px dotted #dfdfdf' }}>{'\u{1F4B8}'} Transparant {'\u2014'} geen verrassingen op de factuur</div>
+              <div style={{ padding: '3px 0' }}>{'\u{1F680}'} Proactief {'\u2014'} voorkomen is beter dan genezen</div>
+            </div>
+            <Button size="sm" style={{ marginTop: 8, width: '100%' }} onClick={() => go('waarom')}>{'\u2B50'} Meer over waarom wij</Button>
+          </HomeSection>
+
+          {/* Contact block */}
+          <HomeSection variant="well">
+            <h3>{'\u{1F4E8}'} Contact</h3>
+            <p style={{ fontSize: 11, lineHeight: 1.5, margin: '0 0 8px', color: '#444' }}>
+              Heeft u een vraag of wilt u vrijblijvend overleggen?
+              Neem direct contact met ons op.
+            </p>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <Button size="sm" primary onClick={() => go('contact')}>{'\u{1F4E8}'} Stuur e-mail</Button>
+              <Button size="sm" onClick={() => window.open(WA_LINK + '?text=Hallo%20Do-IT%20Solutions!%20Ik%20heb%20een%20vraag.', '_blank')}>{'\u{1F4AC}'} WhatsApp</Button>
+            </div>
+          </HomeSection>
+        </div>
       </HomeGrid>
     </div>
   );
