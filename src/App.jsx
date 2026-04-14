@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
+import { marked } from 'marked';
 import {
   Window,
   WindowHeader,
@@ -16,6 +17,7 @@ import {
   TextInput,
   Checkbox,
 } from 'react95';
+import posts from './posts';
 
 /* ================================================================== */
 /*  STYLED COMPONENTS                                                  */
@@ -351,6 +353,83 @@ const FeatureItem = styled.div`
   .ck { color: green; font-weight: bold; }
 `;
 
+/* ---- Blog (Notepad thema) ---- */
+
+const NotepadWrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-height: 300px;
+`;
+
+const NotepadMenuBar = styled.div`
+  display: flex;
+  gap: 0;
+  padding: 2px 4px;
+  font-size: 11px;
+  border-bottom: 1px solid #c0c0c0;
+  background: #ece9d8;
+  flex-shrink: 0;
+`;
+
+const NotepadMenuItem = styled.span`
+  padding: 2px 8px;
+  cursor: default;
+  &:hover { background: #316ac5; color: #fff; }
+`;
+
+const NotepadBody = styled.div`
+  flex: 1;
+  background: #fff;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #000;
+  overflow-y: auto;
+
+  h2 { font-size: 15px; font-weight: bold; color: #000080; margin: 16px 0 6px; }
+  h3 { font-size: 13px; font-weight: bold; color: #000080; margin: 12px 0 4px; }
+  p { margin: 0 0 8px; }
+  ul, ol { margin: 4px 0 8px 20px; padding: 0; }
+  li { margin-bottom: 2px; }
+  strong { font-weight: bold; }
+  em { font-style: italic; }
+  code { background: #f0f0f0; padding: 1px 4px; font-family: 'Courier New', monospace; font-size: 12px; }
+`;
+
+const NotepadStatusBar = styled.div`
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 8px;
+  font-size: 10px;
+  color: #555;
+  border-top: 1px solid #c0c0c0;
+  background: #ece9d8;
+  flex-shrink: 0;
+`;
+
+const BlogListItem = styled.button`
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  background: ${({ $alt }) => ($alt ? '#f5f5f0' : '#fff')};
+  border: none;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  color: #000;
+  &:hover { background: #316ac5; color: #fff; }
+  &:hover .blog-date { color: #ccc; }
+  &:hover .blog-summary { color: #ddd; }
+  .blog-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+  .blog-title { font-weight: bold; font-size: 13px; }
+  .blog-date { font-size: 10px; color: #888; margin-top: 2px; }
+  .blog-summary { font-size: 11px; color: #555; margin-top: 2px; line-height: 1.4; }
+`;
+
 /* ---- Contact ---- */
 
 const ContactWrap = styled.div`
@@ -409,6 +488,7 @@ const NAV = [
   { id: 'diensten', icon: '\u{1F4C1}',         label: 'Diensten',   winTitle: 'C:\\Do-IT\\Diensten' },
   { id: 'waarom',   icon: '\u2B50',            label: 'Waarom wij', winTitle: 'Waarom Do-IT Solutions?' },
   { id: 'prijzen',  icon: '\u{1F4B0}',         label: 'Prijzen',    winTitle: 'Prijzen \u2014 Do-IT All-in-One' },
+  { id: 'blog',     icon: '\u{1F4DD}',         label: 'Blog',       winTitle: 'Kladblok \u2014 Do-IT Blog' },
   { id: 'contact',  icon: '\u{1F4E7}',         label: 'Contact',    winTitle: 'Contact \u2014 Do-IT Solutions' },
 ];
 
@@ -523,6 +603,7 @@ export default function App() {
   const [sent, setSent] = useState(false);
   const [activeDienst, setActiveDienst] = useState('m365');
   const [pricingChecks, setPricingChecks] = useState({ apps: true, endpoint: true, email: true, support: true });
+  const [activePost, setActivePost] = useState(null);
 
   useEffect(() => { const t = setInterval(() => setClock(new Date()), 30000); return () => clearInterval(t); }, []);
 
@@ -763,7 +844,69 @@ export default function App() {
     </>
   );
 
-  const pages = { home: Home, diensten: Diensten, waarom: Waarom, prijzen: Prijzen, contact: Contact };
+  const Blog = () => {
+    if (activePost) {
+      const post = posts.find((p) => p.slug === activePost);
+      if (!post) { setActivePost(null); return null; }
+      const html = marked.parse(post.content.trim());
+      const wordCount = post.content.trim().split(/\s+/).length;
+      const lineCount = post.content.trim().split('\n').length;
+      return (
+        <NotepadWrap>
+          <NotepadMenuBar>
+            <NotepadMenuItem onClick={() => setActivePost(null)}>{'< Terug'}</NotepadMenuItem>
+            <NotepadMenuItem>Bestand</NotepadMenuItem>
+            <NotepadMenuItem>Bewerken</NotepadMenuItem>
+            <NotepadMenuItem>Opmaak</NotepadMenuItem>
+            <NotepadMenuItem>Help</NotepadMenuItem>
+          </NotepadMenuBar>
+          <NotepadBody>
+            <div style={{ marginBottom: 8, paddingBottom: 8, borderBottom: '1px solid #e0e0e0' }}>
+              <div style={{ fontSize: 11, color: '#888' }}>{post.date} {'\u2022'} {post.author}</div>
+            </div>
+            <div dangerouslySetInnerHTML={{ __html: html }} />
+            <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #e0e0e0', display: 'flex', gap: 6 }}>
+              <Button size="sm" onClick={() => setActivePost(null)}>{'\u{1F4DD}'} Alle posts</Button>
+              <Button size="sm" primary onClick={() => go('contact')}>{'\u{1F4E8}'} Contact</Button>
+            </div>
+          </NotepadBody>
+          <NotepadStatusBar>
+            <span>{post.title}.txt</span>
+            <span>{wordCount} woorden {'\u2022'} {lineCount} regels</span>
+          </NotepadStatusBar>
+        </NotepadWrap>
+      );
+    }
+
+    return (
+      <NotepadWrap>
+        <NotepadMenuBar>
+          <NotepadMenuItem>Bestand</NotepadMenuItem>
+          <NotepadMenuItem>Bewerken</NotepadMenuItem>
+          <NotepadMenuItem>Beeld</NotepadMenuItem>
+          <NotepadMenuItem>Help</NotepadMenuItem>
+        </NotepadMenuBar>
+        <div style={{ background: '#fff', flex: 1 }}>
+          {posts.map((post, i) => (
+            <BlogListItem key={post.slug} $alt={i % 2 === 1} onClick={() => setActivePost(post.slug)}>
+              <span className="blog-icon">{'\u{1F4C4}'}</span>
+              <div>
+                <div className="blog-title">{post.title}</div>
+                <div className="blog-date">{post.date} {'\u2022'} {post.author}</div>
+                <div className="blog-summary">{post.summary}</div>
+              </div>
+            </BlogListItem>
+          ))}
+        </div>
+        <NotepadStatusBar>
+          <span>C:\Do-IT\Blog\</span>
+          <span>{posts.length} bericht{posts.length !== 1 ? 'en' : ''}</span>
+        </NotepadStatusBar>
+      </NotepadWrap>
+    );
+  };
+
+  const pages = { home: Home, diensten: Diensten, waarom: Waarom, prijzen: Prijzen, blog: Blog, contact: Contact };
   const PageComponent = pages[page];
 
   return (

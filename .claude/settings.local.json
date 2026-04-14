@@ -4,7 +4,11 @@
       "WebFetch(domain:limehawk.io)",
       "Bash(npx vite:*)",
       "Bash(git --version)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(gh repo:*)",
+      "Bash(gh api:*)",
+      "Bash(gh run:*)",
+      "Bash(npm install:*)"
     ]
   }
 }

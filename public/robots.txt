@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://beerndbox01.github.io/doit-website/sitemap.xml
