@@ -215,6 +215,39 @@ const HomeGrid = styled.div`
   }
 `;
 
+const PartnersBar = styled(Panel)`
+  margin-top: 12px;
+  padding: 10px 16px;
+  text-align: center;
+  .partners-title {
+    font-size: 11px;
+    color: #555;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+`;
+
+const PartnersRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  img {
+    height: 28px;
+    object-fit: contain;
+    opacity: 0.75;
+    filter: grayscale(20%);
+    transition: opacity 0.2s, filter 0.2s;
+    &:hover { opacity: 1; filter: grayscale(0%); }
+  }
+  @media (max-width: 600px) {
+    gap: 16px;
+    img { height: 22px; }
+  }
+`;
+
 const HomeTopBar = styled.div`
   display: flex;
   align-items: flex-start;
@@ -957,6 +990,16 @@ export default function App() {
           </HomeSection>
         </div>
       </HomeGrid>
+
+      <PartnersBar variant="well">
+        <div className="partners-title">Samenwerking met</div>
+        <PartnersRow>
+          <img src={import.meta.env.BASE_URL + 'partners-microsoft.png'} alt="Microsoft" />
+          <img src={import.meta.env.BASE_URL + 'partners-fortinet.png'} alt="Fortinet" />
+          <img src={import.meta.env.BASE_URL + 'partners-ubiquiti.png'} alt="Ubiquiti" />
+          <img src={import.meta.env.BASE_URL + 'partners-dropsuite.png'} alt="Dropsuite" />
+        </PartnersRow>
+      </PartnersBar>
     </div>
   );
 
