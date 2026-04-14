@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:limehawk.io)",
+      "Bash(npx vite:*)",
+      "Bash(git --version)",
+      "Bash(gh auth:*)"
+    ]
+  }
+}
