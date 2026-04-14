@@ -45,19 +45,18 @@ const THEMES = [
 /* ================================================================== */
 
 const Desktop = styled.div`
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   background: ${({ $bg }) => $bg || '#008080'};
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px 16px 48px 16px;
+  padding: 12px 16px 48px 16px;
   overflow: hidden;
   position: relative;
   transition: background 0.4s ease;
   @media (max-width: 600px) {
-    padding: 4px 4px 40px 4px;
-    align-items: flex-start;
+    padding: 6px 6px 42px 6px;
   }
 `;
 
@@ -124,20 +123,11 @@ const ErrorActions = styled.div`
 const MainWindow = styled(Window)`
   width: 100%;
   max-width: 880px;
-  height: calc(100vh - 80px);
-  max-height: 860px;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   z-index: 10;
   overflow: hidden;
-  @media (max-width: 920px) {
-    max-width: 100%;
-    max-height: calc(100vh - 60px);
-  }
-  @media (max-width: 600px) {
-    height: calc(100vh - 56px);
-    max-height: none;
-  }
 `;
 
 const StyledWindowHeader = styled(WindowHeader)`
@@ -188,13 +178,13 @@ const NavButton = styled(Button)`
 
 const ScrollContent = styled(WindowContent)`
   flex: 1;
-  overflow-y: auto;
+  overflow-y: scroll;
   overflow-x: hidden;
   padding: 12px 16px;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
   min-height: 0;
-  @media (max-width: 600px) { padding: 8px; }
+  @media (max-width: 600px) { padding: 8px 10px; }
 `;
 
 const CloseIcon = styled.span`
@@ -981,7 +971,7 @@ export default function App() {
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
       <HomeTopBar>
         <CompanyInfo>
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}><img src={import.meta.env.BASE_URL + 'logo-doit.webp'} alt="Do-IT Solutions" style={{ height: 32 }} /> Do-IT Solutions</h2>
+          <img src={import.meta.env.BASE_URL + 'logo-doit.webp'} alt="Do-IT Solutions" style={{ height: 48, marginBottom: -8 }} />
           <div className="tagline">Nieuwe technologie, ouderwets goed.</div>
           <div className="meta">
             <span>{'\u{1F4CD}'} Gevestigd in Denekamp</span>

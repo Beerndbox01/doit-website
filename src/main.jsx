@@ -32,15 +32,11 @@ const GlobalStyles = createGlobalStyle`
     margin: 0;
     padding: 0;
     background: #008080;
-    min-height: 100vh;
-    overflow-x: hidden;
-    overflow-y: hidden;
-    position: fixed;
-    width: 100%;
-    height: 100%;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
   }
   #root {
-    width: 100%;
     height: 100%;
   }
   html {
