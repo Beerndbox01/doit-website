@@ -34,6 +34,14 @@ const GlobalStyles = createGlobalStyle`
     background: #008080;
     min-height: 100vh;
     overflow-x: hidden;
+    overflow-y: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+  #root {
+    width: 100%;
+    height: 100%;
   }
   html {
     scroll-behavior: smooth;

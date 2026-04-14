@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { ThemeProvider } from 'styled-components';
 import { marked } from 'marked';
 import {
@@ -55,6 +55,10 @@ const Desktop = styled.div`
   overflow: hidden;
   position: relative;
   transition: background 0.4s ease;
+  @media (max-width: 600px) {
+    padding: 4px 4px 40px 4px;
+    align-items: flex-start;
+  }
 `;
 
 /* ---- Error Dialog ---- */
@@ -125,9 +129,14 @@ const MainWindow = styled(Window)`
   display: flex;
   flex-direction: column;
   z-index: 10;
+  overflow: hidden;
   @media (max-width: 920px) {
     max-width: 100%;
     max-height: calc(100vh - 60px);
+  }
+  @media (max-width: 600px) {
+    height: calc(100vh - 56px);
+    max-height: none;
   }
 `;
 
@@ -182,6 +191,9 @@ const ScrollContent = styled(WindowContent)`
   overflow-y: auto;
   overflow-x: hidden;
   padding: 12px 16px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  min-height: 0;
   @media (max-width: 600px) { padding: 8px; }
 `;
 
@@ -215,16 +227,16 @@ const HomeGrid = styled.div`
   }
 `;
 
-const PartnersBar = styled(Panel)`
-  margin-top: 12px;
-  padding: 10px 16px;
+const PartnersBar = styled.div`
+  margin-top: auto;
+  padding: 14px 16px 8px;
   text-align: center;
   .partners-title {
-    font-size: 11px;
-    color: #555;
-    margin-bottom: 8px;
+    font-size: 10px;
+    color: #808080;
+    margin-bottom: 10px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
   }
 `;
 
@@ -232,19 +244,47 @@ const PartnersRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  flex-wrap: wrap;
+  gap: 40px;
   img {
-    height: 28px;
+    height: 26px;
     object-fit: contain;
-    opacity: 0.75;
-    filter: grayscale(20%);
-    transition: opacity 0.2s, filter 0.2s;
+    opacity: 0.6;
+    filter: grayscale(30%);
+    transition: opacity 0.3s, filter 0.3s;
     &:hover { opacity: 1; filter: grayscale(0%); }
   }
   @media (max-width: 600px) {
-    gap: 16px;
-    img { height: 22px; }
+    display: none;
+  }
+`;
+
+/* Mobile marquee for partners */
+const marqueeScroll = keyframes`
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+`;
+
+const PartnersMarquee = styled.div`
+  display: none;
+  @media (max-width: 600px) {
+    display: block;
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+  }
+`;
+
+const MarqueeTrack = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  animation: ${marqueeScroll} 12s linear infinite;
+  width: max-content;
+  img {
+    height: 22px;
+    object-fit: contain;
+    opacity: 0.7;
+    flex-shrink: 0;
   }
 `;
 
@@ -930,8 +970,15 @@ export default function App() {
 
   /* ---- page renderers ---- */
 
+  const PARTNER_LOGOS = [
+    { src: import.meta.env.BASE_URL + 'partners-microsoft.png', alt: 'Microsoft' },
+    { src: import.meta.env.BASE_URL + 'partners-fortinet.png', alt: 'Fortinet' },
+    { src: import.meta.env.BASE_URL + 'partners-ubiquiti.png', alt: 'Ubiquiti' },
+    { src: import.meta.env.BASE_URL + 'partners-dropsuite.png', alt: 'Dropsuite' },
+  ];
+
   const Home = () => (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
       <HomeTopBar>
         <CompanyInfo>
           <h2>{'\u{1F5A5}\uFE0F'} Do-IT Solutions</h2>
@@ -991,14 +1038,16 @@ export default function App() {
         </div>
       </HomeGrid>
 
-      <PartnersBar variant="well">
+      <PartnersBar>
         <div className="partners-title">Samenwerking met</div>
         <PartnersRow>
-          <img src={import.meta.env.BASE_URL + 'partners-microsoft.png'} alt="Microsoft" />
-          <img src={import.meta.env.BASE_URL + 'partners-fortinet.png'} alt="Fortinet" />
-          <img src={import.meta.env.BASE_URL + 'partners-ubiquiti.png'} alt="Ubiquiti" />
-          <img src={import.meta.env.BASE_URL + 'partners-dropsuite.png'} alt="Dropsuite" />
+          {PARTNER_LOGOS.map((p) => <img key={p.alt} src={p.src} alt={p.alt} />)}
         </PartnersRow>
+        <PartnersMarquee>
+          <MarqueeTrack>
+            {[...PARTNER_LOGOS, ...PARTNER_LOGOS].map((p, i) => <img key={i} src={p.src} alt={p.alt} />)}
+          </MarqueeTrack>
+        </PartnersMarquee>
       </PartnersBar>
     </div>
   );
