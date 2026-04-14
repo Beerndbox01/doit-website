@@ -157,8 +157,12 @@ const NavToolbar = styled(Toolbar)`
   flex-shrink: 0;
   display: flex;
   gap: 1px;
-  padding: 2px 3px;
+  padding: 4px 6px;
   flex-wrap: wrap;
+  border-bottom: 2px groove #e0e0e0;
+  background: ${({ theme }) => theme.material};
+  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
+  margin: 2px 3px;
 `;
 
 const NavButton = styled(Button)`
@@ -377,113 +381,181 @@ const ReasonCard = styled(GroupBox)`
   p { font-size: 12px; line-height: 1.5; margin: 0; }
 `;
 
-/* ---- Prijzen Calculator ---- */
+/* ---- Prijzen Calculator (limehawk-inspired two-column) ---- */
 
-const CalcWrap = styled.div`
-  max-width: 560px;
-  margin: 0 auto;
+const PrijzenLayout = styled.div`
+  display: flex;
+  gap: 12px;
+  min-height: 0;
+  @media (max-width: 700px) { flex-direction: column; }
 `;
 
-const CalcRow = styled.div`
+const PrijzenLeft = styled(Fieldset)`
+  flex: 1;
+  min-width: 0;
+  padding: 10px !important;
+`;
+
+const PrijzenRight = styled(Fieldset)`
+  flex: 1;
+  min-width: 0;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+`;
+
+const UserCountRow = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 0;
-  border-bottom: 1px dotted #c0c0c0;
-  &:last-child { border-bottom: none; }
+  gap: 4px;
+  margin-bottom: 10px;
+  .user-label { font-size: 12px; font-weight: bold; margin-right: 6px; }
 `;
 
-const CalcLabel = styled.div`
-  flex: 1;
-  .calc-name { font-size: 12px; font-weight: bold; }
-  .calc-desc { font-size: 10px; color: #555; margin-top: 1px; }
-  .calc-tier { font-size: 9px; color: #888; margin-top: 1px; font-style: italic; }
-`;
-
-const CalcPrice = styled.span`
-  font-size: 12px;
-  font-weight: bold;
-  color: ${({ $active }) => ($active ? '#000080' : '#aaa')};
-  white-space: nowrap;
-  min-width: 60px;
-  text-align: right;
-`;
-
-const CalcTotal = styled(Panel)`
-  padding: 12px;
-  margin-top: 12px;
+const UserInput = styled.input`
+  width: 42px;
+  height: 22px;
   text-align: center;
-  .total-amount { font-size: 32px; font-weight: bold; color: #000080; }
-  .total-sub { font-size: 11px; color: #555; margin-top: 2px; }
-  .yearly { font-size: 12px; color: green; font-weight: bold; margin-top: 4px; }
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: bold;
+  border: 2px inset #c0c0c0;
+  background: #fff;
+  color: #000;
+  &:focus { outline: 1px dotted #000; }
 `;
 
-const UserCountWrap = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  .user-label { font-size: 12px; font-weight: bold; color: #000080; }
-  .user-count { font-size: 20px; font-weight: bold; color: #000080; min-width: 40px; text-align: center; }
-`;
-
-const SliderWrap = styled.div`
-  flex: 1;
-  input[type="range"] {
-    width: 100%;
-    height: 20px;
-    -webkit-appearance: none;
-    background: transparent;
-    &::-webkit-slider-track {
-      height: 4px;
-      background: #c0c0c0;
-      border: 1px inset #808080;
-    }
-    &::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 14px;
-      height: 20px;
-      background: #c0c0c0;
-      border: 2px outset #dfdfdf;
-      border-right-color: #808080;
-      border-bottom-color: #808080;
-      cursor: pointer;
-      margin-top: -9px;
-    }
-    &::-moz-range-track {
-      height: 4px;
-      background: #c0c0c0;
-      border: 1px inset #808080;
-    }
-    &::-moz-range-thumb {
-      width: 14px;
-      height: 20px;
-      background: #c0c0c0;
-      border: 2px outset #dfdfdf;
-      border-right-color: #808080;
-      border-bottom-color: #808080;
-      cursor: pointer;
-    }
-  }
-`;
-
-const CompareBar = styled(Panel)`
-  padding: 10px 12px;
-  margin-top: 10px;
-  .compare-title { font-size: 11px; font-weight: bold; color: #000080; margin-bottom: 6px; }
+const CompareTable = styled.div`
+  border: 2px inset #c0c0c0;
+  background: #fff;
+  margin-bottom: 10px;
 `;
 
 const CompareRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
-  padding: 3px 0;
-  border-bottom: 1px dotted #dfdfdf;
+  font-size: 12px;
+  padding: 5px 8px;
+  border-bottom: 1px solid #e0e0e0;
   &:last-child { border-bottom: none; }
-  .compare-label { color: #444; }
-  .compare-value { font-weight: bold; }
-  .compare-save { color: green; font-weight: bold; }
+  .cmp-label { color: #000; }
+  .cmp-value { font-weight: bold; text-align: right; }
+`;
+
+const SavingsBox = styled.div`
+  border: 2px inset #c0c0c0;
+  background: #fff;
+  padding: 6px 8px;
+  margin-bottom: 10px;
+`;
+
+const SavingsRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 2px 0;
+  .sav-label { color: #000; }
+  .sav-value { font-weight: bold; }
+  .sav-green { font-weight: bold; color: green; }
+`;
+
+const ProgressBar = styled.div`
+  height: 18px;
+  border: 2px inset #c0c0c0;
+  background: #fff;
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+`;
+
+const ProgressFill = styled.div`
+  height: 100%;
+  background: linear-gradient(to right, #000080, #316ac5);
+  width: ${({ $pct }) => Math.min($pct, 100)}%;
+  transition: width 0.4s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  min-width: ${({ $pct }) => ($pct > 8 ? '0' : '40')}px;
+`;
+
+const BaseRateNote = styled.div`
+  font-size: 11px;
+  color: #555;
+  margin-bottom: 8px;
+  line-height: 1.4;
+`;
+
+const CheckList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`;
+
+const CheckItem = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 2px 0;
+  cursor: default;
+`;
+
+/* Options tabs (right panel) */
+
+const TabRow = styled.div`
+  display: flex;
+  gap: 0;
+  padding: 6px 8px 0;
+  background: ${({ theme }) => theme.material};
+`;
+
+const Tab = styled.button`
+  font-family: inherit;
+  font-size: 11px;
+  padding: 3px 12px;
+  border: 2px outset #dfdfdf;
+  border-bottom: ${({ $active }) => ($active ? 'none' : '2px outset #dfdfdf')};
+  background: ${({ $active, theme }) => ($active ? theme.material : '#d4d0c8')};
+  cursor: pointer;
+  position: relative;
+  top: 2px;
+  z-index: ${({ $active }) => ($active ? 2 : 1)};
+  font-weight: ${({ $active }) => ($active ? 'bold' : 'normal')};
+  margin-right: -1px;
+  &:hover { background: ${({ theme }) => theme.material}; }
+`;
+
+const TabContent = styled.div`
+  border: 2px inset #c0c0c0;
+  background: #fff;
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 10px;
+  margin: 0 8px 8px;
+`;
+
+const OptCategory = styled.div`
+  margin-bottom: 10px;
+  &:last-child { margin-bottom: 0; }
+  .opt-cat-title { font-size: 12px; font-weight: bold; margin-bottom: 4px; }
+`;
+
+const OptRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  padding: 3px 8px;
+  border: 1px solid #e0e0e0;
+  margin-bottom: 2px;
+  background: #fafafa;
+  .opt-name { color: #000; }
+  .opt-price { font-weight: bold; text-align: right; white-space: nowrap; }
 `;
 
 const FaqItem = styled.div`
@@ -733,6 +805,42 @@ const CALC_OPTIONS = [
 
 const INTERNAL_IT_COST = 4500; // Gemiddelde kosten interne ICT'er per maand (incl. werkgeverslasten)
 
+const ADDON_CATEGORIES = [
+  {
+    title: 'Software',
+    items: [
+      { name: 'Security Awareness Training', price: '+\u20AC2,50/gebruiker/mnd' },
+      { name: 'Microsoft Copilot', price: '+\u20AC30/gebruiker/mnd' },
+      { name: 'Exclaimer Signatures', price: '+\u20AC1,50/gebruiker/mnd' },
+    ],
+  },
+  {
+    title: 'Hardware as a Service',
+    items: [
+      { name: 'Managed Firewall (UniFi)', price: '\u20AC75/mnd' },
+      { name: 'Netwerk Switch', price: '\u20AC35/mnd' },
+      { name: 'WiFi Access Point', price: '\u20AC15/mnd' },
+      { name: 'Backup NAS', price: '\u20AC65/mnd' },
+    ],
+  },
+  {
+    title: 'Cloud & Backup',
+    items: [
+      { name: 'Cloud Backup (M365)', price: '\u20AC2/gebruiker/mnd' },
+      { name: 'Disaster Recovery Plan', price: 'vanaf \u20AC150/mnd' },
+      { name: 'Extra OneDrive opslag (1TB)', price: '+\u20AC5/gebruiker/mnd' },
+    ],
+  },
+  {
+    title: 'Compliance & Advies',
+    items: [
+      { name: 'AVG/GDPR Audit', price: '\u20AC500 eenmalig' },
+      { name: 'Darkweb Monitoring', price: '+\u20AC3/gebruiker/mnd' },
+      { name: 'Beveiligingsrapportage', price: '\u20AC75/mnd' },
+    ],
+  },
+];
+
 const WA_LINK = 'https://wa.me/31651419202';
 
 /* ================================================================== */
@@ -751,6 +859,7 @@ export default function App() {
   const [userCount, setUserCount] = useState(5);
   const [billingYearly, setBillingYearly] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
+  const [optionsTab, setOptionsTab] = useState('addons');
   const [themeIndex, setThemeIndex] = useState(0);
   const [showError, setShowError] = useState(false);
 
@@ -918,152 +1027,152 @@ export default function App() {
   );
 
   const Prijzen = () => {
-    const showContact50 = userCount >= 50;
+    const savings = Math.max(0, INTERNAL_IT_COST - effectiveMonthly);
+    const savingsPct = INTERNAL_IT_COST > 0 ? Math.round((savings / INTERNAL_IT_COST) * 100) : 0;
+
     return (
-      <CalcWrap>
-        <p style={{ fontSize: 13, marginBottom: 10, lineHeight: 1.5 }}>
-          Bereken wat uw IT per medewerker kost. Vink aan wat u nodig heeft.
-        </p>
+      <div>
+        <PrijzenLayout>
+          {/* ---- LEFT: Value Calculator ---- */}
+          <PrijzenLeft label="Value Calculator">
+            <UserCountRow>
+              <span className="user-label">Users:</span>
+              <Button size="sm" square style={{ minWidth: 22, minHeight: 22 }} onClick={() => setUserCount(Math.max(1, userCount - 1))} disabled={userCount <= 1}>&lt;</Button>
+              <UserInput type="number" min="1" max="50" value={userCount} onChange={(e) => { const v = Math.max(1, Math.min(50, Number(e.target.value) || 1)); setUserCount(v); }} />
+              <Button size="sm" square style={{ minWidth: 22, minHeight: 22 }} onClick={() => setUserCount(Math.min(50, userCount + 1))} disabled={userCount >= 50}>&gt;</Button>
+            </UserCountRow>
 
-        {/* User count slider */}
-        <Panel variant="well" style={{ padding: '8px 12px', marginBottom: 12 }}>
-          <UserCountWrap>
-            <span className="user-label">{'\u{1F465}'} Aantal gebruikers:</span>
-            <Button size="sm" square onClick={() => setUserCount(Math.max(1, userCount - 1))} disabled={userCount <= 1}>-</Button>
-            <span className="user-count">{userCount}</span>
-            <Button size="sm" square onClick={() => setUserCount(Math.min(50, userCount + 1))} disabled={userCount >= 50}>+</Button>
-          </UserCountWrap>
-          <SliderWrap>
-            <input type="range" min="1" max="50" value={userCount} onChange={(e) => setUserCount(Number(e.target.value))} />
-          </SliderWrap>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#888', marginTop: 2 }}>
-            <span>1 (ZZP)</span>
-            <span>10</span>
-            <span>25</span>
-            <span>50+</span>
-          </div>
-        </Panel>
+            {/* Comparison table */}
+            <CompareTable>
+              <CompareRow>
+                <span className="cmp-label">Interne ICT{'\u2019'}er inhuren</span>
+                <span className="cmp-value">{'\u20AC'}{INTERNAL_IT_COST.toLocaleString('nl-NL')}/mnd</span>
+              </CompareRow>
+              <CompareRow>
+                <span className="cmp-label">Do-IT Solutions</span>
+                <span className="cmp-value">{'\u20AC'}{effectiveMonthly.toFixed(0)}/mnd</span>
+              </CompareRow>
+            </CompareTable>
 
-        {showContact50 && (
-          <Panel variant="well" style={{ padding: 12, marginBottom: 12, background: '#ffffcc' }}>
-            <p style={{ fontSize: 12, margin: 0, fontWeight: 'bold', color: '#000080' }}>{'\u{1F4DE}'} 50+ gebruikers? Neem contact op voor maatwerk!</p>
-            <p style={{ fontSize: 11, margin: '4px 0 8px', color: '#555' }}>Bij grote organisaties maken wij een pakket op maat met volumekorting.</p>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <Button size="sm" primary onClick={() => go('contact')}>{'\u{1F4E8}'} Contact opnemen</Button>
-              <Button size="sm" onClick={() => window.open(WA_LINK + '?text=Hallo%20Do-IT!%20Ik%20heb%2050%2B%20gebruikers%20en%20wil%20graag%20een%20offerte.', '_blank')}>{'\u{1F4AC}'} WhatsApp</Button>
-            </div>
-          </Panel>
-        )}
+            {/* Savings box */}
+            <SavingsBox>
+              <SavingsRow>
+                <span className="sav-label">U bespaart</span>
+                <span className="sav-green">{'\u20AC'}{savings.toFixed(0)}/mnd</span>
+              </SavingsRow>
+              <SavingsRow>
+                <span className="sav-label">Jaarlijkse besparing</span>
+                <span className="sav-green">{'\u20AC'}{(savings * 12).toLocaleString('nl-NL', { maximumFractionDigits: 0 })}/jr</span>
+              </SavingsRow>
+              <SavingsRow>
+                <span className="sav-label">vs inhuren</span>
+                <span className="sav-green">{savingsPct}% minder</span>
+              </SavingsRow>
+            </SavingsBox>
 
-        {/* Service checkboxes */}
-        <Panel variant="well" style={{ padding: '8px 12px' }}>
-          {CALC_OPTIONS.map((o) => (
-            <CalcRow key={o.id}>
-              <Checkbox
-                checked={calcChecks[o.id]}
-                onChange={() => toggleCalc(o.id)}
-                label=""
-                style={{ marginRight: -4, flexShrink: 0 }}
-              />
-              <CalcLabel>
-                <div className="calc-name">{o.name}</div>
-                <div className="calc-desc">{o.desc}</div>
-                <div className="calc-tier">{o.tier}</div>
-              </CalcLabel>
-              <CalcPrice $active={calcChecks[o.id]}>{'\u20AC'}{o.price.toFixed(2)}</CalcPrice>
-            </CalcRow>
-          ))}
-        </Panel>
+            {/* Progress bar */}
+            <ProgressBar>
+              <ProgressFill $pct={savingsPct}>{savingsPct}%</ProgressFill>
+            </ProgressBar>
 
-        {/* Billing toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
-          <Checkbox checked={billingYearly} onChange={() => setBillingYearly(!billingYearly)} label="" style={{ marginRight: -4 }} />
-          <span style={{ fontSize: 12 }}>Jaarlijks betalen</span>
-          {billingYearly && <span style={{ fontSize: 11, color: 'green', fontWeight: 'bold' }}>-10% korting!</span>}
-        </div>
+            {/* Base rate info */}
+            <BaseRateNote>
+              Basisprijs {'\u2014'} {'\u20AC'}{pricePerUser.toFixed(2)}/gebruiker/mnd<br />
+              {billingYearly && <span style={{ color: 'green', fontWeight: 'bold' }}>Jaarlijks betalen: 10% korting!<br /></span>}
+              {userCount} gebruiker{userCount !== 1 ? 's' : ''} {'\u00D7'} {'\u20AC'}{pricePerUser.toFixed(2)} = <strong>{'\u20AC'}{effectiveMonthly.toFixed(2)}/mnd</strong>
+            </BaseRateNote>
 
-        {/* Total */}
-        <CalcTotal variant="well">
-          <div style={{ fontSize: 11, color: '#555' }}>{userCount} gebruiker{userCount !== 1 ? 's' : ''} {'\u00D7'} {'\u20AC'}{pricePerUser.toFixed(2)} p/m</div>
-          <div className="total-amount">{'\u20AC'}{effectiveMonthly.toFixed(2)}</div>
-          <div className="total-sub">per maand {'\u2022'} excl. BTW</div>
-          {billingYearly && <div className="yearly">Jaarlijks: {'\u20AC'}{(effectiveMonthly * 12).toFixed(2)} {'\u2022'} U bespaart {'\u20AC'}{(monthlyPrice * 12 * yearlyDiscount).toFixed(2)} per jaar</div>}
-        </CalcTotal>
+            {/* Included checkboxes */}
+            <CheckList>
+              {CALC_OPTIONS.map((o) => (
+                <CheckItem key={o.id}>
+                  <Checkbox
+                    checked={calcChecks[o.id]}
+                    onChange={() => toggleCalc(o.id)}
+                    label=""
+                    style={{ marginRight: -6 }}
+                  />
+                  <span>{o.name}</span>
+                </CheckItem>
+              ))}
+              <div style={{ marginTop: 6 }}>
+                <CheckItem>
+                  <Checkbox checked={billingYearly} onChange={() => setBillingYearly(!billingYearly)} label="" style={{ marginRight: -6 }} />
+                  <span>Jaarlijks betalen (-10%)</span>
+                </CheckItem>
+              </div>
+            </CheckList>
+          </PrijzenLeft>
 
-        {/* Comparison */}
-        <CompareBar variant="well">
-          <div className="compare-title">{'\u{1F4CA}'} Vergelijk met een interne ICT{'\u2019'}er</div>
-          <CompareRow>
-            <span className="compare-label">Interne ICT{'\u2019'}er (gemiddeld)</span>
-            <span className="compare-value">{'\u20AC'}{INTERNAL_IT_COST.toLocaleString('nl-NL')}/mnd</span>
-          </CompareRow>
-          <CompareRow>
-            <span className="compare-label">Do-IT Solutions ({userCount} gebruikers)</span>
-            <span className="compare-value">{'\u20AC'}{effectiveMonthly.toFixed(2)}/mnd</span>
-          </CompareRow>
-          <CompareRow>
-            <span className="compare-label">U bespaart</span>
-            <span className="compare-save">{'\u20AC'}{Math.max(0, INTERNAL_IT_COST - effectiveMonthly).toFixed(2)}/mnd</span>
-          </CompareRow>
-        </CompareBar>
+          {/* ---- RIGHT: Options ---- */}
+          <PrijzenRight label="Opties">
+            <TabRow>
+              <Tab $active={optionsTab === 'addons'} onClick={() => setOptionsTab('addons')}>Add-ons</Tab>
+              <Tab $active={optionsTab === 'faq'} onClick={() => setOptionsTab('faq')}>FAQ</Tab>
+              <Tab $active={optionsTab === 'start'} onClick={() => setOptionsTab('start')}>Offerte</Tab>
+            </TabRow>
+            <TabContent>
+              {optionsTab === 'addons' && ADDON_CATEGORIES.map((cat) => (
+                <OptCategory key={cat.title}>
+                  <div className="opt-cat-title">{cat.title}</div>
+                  {cat.items.map((item) => (
+                    <OptRow key={item.name}>
+                      <span className="opt-name">{item.name}</span>
+                      <span className="opt-price">{item.price}</span>
+                    </OptRow>
+                  ))}
+                </OptCategory>
+              ))}
 
-        {/* CTA */}
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
-          <Button size="lg" primary onClick={() => go('contact')}>{'\u{1F4E8}'} Offerte aanvragen</Button>
-          <Button size="lg" onClick={() => window.open(WA_LINK + '?text=Hallo%20Do-IT!%20Ik%20wil%20graag%20een%20offerte.', '_blank')}>{'\u{1F4AC}'} WhatsApp</Button>
-        </div>
+              {optionsTab === 'faq' && (
+                <>
+                  <FaqItem>
+                    <div className="faq-q" onClick={() => setOpenFaq(openFaq === 'contract' ? null : 'contract')}>{openFaq === 'contract' ? '\u25BC' : '\u25B6'} Langlopend contract?</div>
+                    {openFaq === 'contract' && <div className="faq-a">Nee! <strong>Maandelijks opzegbaar</strong>. Jaarlijks betalen = 10% korting.</div>}
+                  </FaqItem>
+                  <FaqItem>
+                    <div className="faq-q" onClick={() => setOpenFaq(openFaq === 'minimum' ? null : 'minimum')}>{openFaq === 'minimum' ? '\u25BC' : '\u25B6'} Minimum gebruikers?</div>
+                    {openFaq === 'minimum' && <div className="faq-a">Nee, minimum is <strong>1 gebruiker</strong>. 50+ = maatwerk offerte.</div>}
+                  </FaqItem>
+                  <FaqItem>
+                    <div className="faq-q" onClick={() => setOpenFaq(openFaq === 'licenties' ? null : 'licenties')}>{openFaq === 'licenties' ? '\u25BC' : '\u25B6'} Licenties inbegrepen?</div>
+                    {openFaq === 'licenties' && <div className="faq-a">Ja. Prijzen zijn <strong>inclusief Microsoft licenties</strong>. E{'\u00E9'}n factuur, wij regelen alles.</div>}
+                  </FaqItem>
+                  <FaqItem>
+                    <div className="faq-q" onClick={() => setOpenFaq(openFaq === 'opzeggen' ? null : 'opzeggen')}>{openFaq === 'opzeggen' ? '\u25BC' : '\u25B6'} Hoe werkt opzeggen?</div>
+                    {openFaq === 'opzeggen' && <div className="faq-a"><strong>Per maand</strong>, 1 maand opzegtermijn. Wij helpen met overdracht.</div>}
+                  </FaqItem>
+                  <FaqItem>
+                    <div className="faq-q" onClick={() => setOpenFaq(openFaq === 'wat' ? null : 'wat')}>{openFaq === 'wat' ? '\u25BC' : '\u25B6'} Niet alles nodig?</div>
+                    {openFaq === 'wat' && <div className="faq-a">U kiest zelf. Alleen mailbox nodig? Dan betaalt u alleen mailbox. Geen verplichte pakketten.</div>}
+                  </FaqItem>
+                </>
+              )}
 
-        {/* FAQ */}
-        <Separator style={{ margin: '16px 0 12px' }} />
-        <p style={{ fontSize: 13, fontWeight: 'bold', color: '#000080', marginBottom: 8 }}>Veelgestelde vragen</p>
-
-        <FaqItem>
-          <div className="faq-q" onClick={() => setOpenFaq(openFaq === 'contract' ? null : 'contract')}>{openFaq === 'contract' ? '\u25BC' : '\u25B6'} Ben ik gebonden aan een langlopend contract?</div>
-          {openFaq === 'contract' && (
-            <div className="faq-a">
-              Nee! U kunt <strong>maandelijks opzeggen</strong>. Wij geloven dat u bij ons blijft omdat u tevreden bent, niet omdat u vast zit aan een contract.
-              Kiest u voor <strong>jaarlijkse betaling</strong>? Dan krijgt u 10% korting. Maar ook dat is geen verplichting.
-            </div>
-          )}
-        </FaqItem>
-
-        <FaqItem>
-          <div className="faq-q" onClick={() => setOpenFaq(openFaq === 'minimum' ? null : 'minimum')}>{openFaq === 'minimum' ? '\u25BC' : '\u25B6'} Is er een minimum aantal gebruikers?</div>
-          {openFaq === 'minimum' && (
-            <div className="faq-a">
-              Nee, het minimum is <strong>1 gebruiker</strong>. Wij helpen ZZP{'\u2019'}ers, starters, MKB en grote organisaties. Iedereen verdient professionele IT.
-              Bij <strong>50+ gebruikers</strong> maken wij een pakket op maat met volumekorting.
-            </div>
-          )}
-        </FaqItem>
-
-        <FaqItem>
-          <div className="faq-q" onClick={() => setOpenFaq(openFaq === 'licenties' ? null : 'licenties')}>{openFaq === 'licenties' ? '\u25BC' : '\u25B6'} Zijn Microsoft licenties inbegrepen?</div>
-          {openFaq === 'licenties' && (
-            <div className="faq-a">
-              Ja. De prijzen zijn <strong>inclusief Microsoft licenties</strong>. U betaalt {'\u00E9\u00E9'}n bedrag aan ons en wij regelen alles: licenties, configuratie, beheer en support.
-            </div>
-          )}
-        </FaqItem>
-
-        <FaqItem>
-          <div className="faq-q" onClick={() => setOpenFaq(openFaq === 'opzeggen' ? null : 'opzeggen')}>{openFaq === 'opzeggen' ? '\u25BC' : '\u25B6'} Hoe werkt opzeggen?</div>
-          {openFaq === 'opzeggen' && (
-            <div className="faq-a">
-              Opzeggen kan <strong>per maand</strong> met een opzegtermijn van 1 maand. Wij helpen u netjes met de overdracht van uw data en licenties. U zit nergens aan vast.
-            </div>
-          )}
-        </FaqItem>
-
-        <FaqItem>
-          <div className="faq-q" onClick={() => setOpenFaq(openFaq === 'wat' ? null : 'wat')}>{openFaq === 'wat' ? '\u25BC' : '\u25B6'} Wat als ik niet alles nodig heb?</div>
-          {openFaq === 'wat' && (
-            <div className="faq-a">
-              U kiest zelf wat u nodig heeft met de calculator hierboven. Heeft u alleen een mailbox nodig? Dan betaalt u alleen voor de mailbox. Wij dwingen geen pakketten af.
-            </div>
-          )}
-        </FaqItem>
-      </CalcWrap>
+              {optionsTab === 'start' && (
+                <div>
+                  <p style={{ fontSize: 12, lineHeight: 1.6, marginBottom: 10 }}>
+                    Uw configuratie: <strong>{userCount} gebruiker{userCount !== 1 ? 's' : ''}</strong> voor <strong>{'\u20AC'}{effectiveMonthly.toFixed(2)}/mnd</strong>
+                    {billingYearly ? ' (jaarlijks)' : ' (maandelijks)'}.
+                  </p>
+                  <p style={{ fontSize: 11, color: '#555', lineHeight: 1.5, marginBottom: 12 }}>
+                    Inclusief: {CALC_OPTIONS.filter(o => calcChecks[o.id]).map(o => o.name).join(', ') || 'geen services geselecteerd'}.
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <Button primary onClick={() => go('contact')}>{'\u{1F4E8}'} Offerte aanvragen</Button>
+                    <Button onClick={() => window.open(WA_LINK + '?text=Hallo%20Do-IT!%20Ik%20wil%20graag%20een%20offerte%20voor%20' + userCount + '%20gebruikers.', '_blank')}>{'\u{1F4AC}'} WhatsApp</Button>
+                  </div>
+                  {userCount >= 50 && (
+                    <Panel variant="well" style={{ padding: 8, marginTop: 10, background: '#ffffcc' }}>
+                      <p style={{ fontSize: 11, margin: 0, fontWeight: 'bold', color: '#000080' }}>{'\u{1F4DE}'} 50+ gebruikers? Bel of mail voor maatwerk!</p>
+                    </Panel>
+                  )}
+                </div>
+              )}
+            </TabContent>
+          </PrijzenRight>
+        </PrijzenLayout>
+      </div>
     );
   };
 
