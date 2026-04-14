@@ -56,7 +56,7 @@ const Desktop = styled.div`
   position: relative;
   transition: background 0.4s ease;
   @media (max-width: 600px) {
-    padding: 6px 6px 42px 6px;
+    padding: 8px 6px 48px 6px;
   }
 `;
 
@@ -268,7 +268,7 @@ const MarqueeTrack = styled.div`
   display: flex;
   align-items: center;
   gap: 48px;
-  animation: ${marqueeScroll} 12s linear infinite;
+  animation: ${marqueeScroll} 20s linear infinite;
   width: max-content;
   img {
     height: 22px;
@@ -442,6 +442,35 @@ const ReasonCard = styled(GroupBox)`
   padding: 10px !important;
   h3 { font-size: 13px; font-weight: bold; color: #000080; margin: 4px 0 6px; }
   p { font-size: 12px; line-height: 1.5; margin: 0; }
+`;
+
+const AboutMeCard = styled(Panel)`
+  display: flex;
+  gap: 16px;
+  padding: 14px;
+  margin-top: 16px;
+  align-items: flex-start;
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+`;
+
+const AboutPhoto = styled.img`
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border: 3px outset #dfdfdf;
+  border-radius: 2px;
+  flex-shrink: 0;
+`;
+
+const AboutText = styled.div`
+  flex: 1;
+  h3 { font-size: 14px; font-weight: bold; color: #000080; margin: 0 0 2px; }
+  .about-role { font-size: 11px; color: #555; margin-bottom: 8px; font-style: italic; }
+  p { font-size: 12px; line-height: 1.6; margin: 0; color: #333; }
 `;
 
 /* ---- Prijzen Calculator (limehawk-inspired two-column) ---- */
@@ -763,7 +792,7 @@ const SideStrip = styled.div`
 const NAV = [
   { id: 'home',     icon: '\u{1F5A5}\uFE0F', label: 'Home',       winTitle: 'Do-IT Solutions' },
   { id: 'diensten', icon: '\u{1F4C1}',         label: 'Diensten',   winTitle: 'C:\\Do-IT\\Diensten' },
-  { id: 'waarom',   icon: '\u2B50',            label: 'Waarom wij', winTitle: 'Waarom Do-IT Solutions?' },
+  { id: 'waarom',   icon: '\u2B50',            label: 'Waarom ons', winTitle: 'Waarom Do-IT Solutions?' },
   { id: 'prijzen',  icon: '\u{1F4B0}',         label: 'Prijzen',    winTitle: 'Prijscalculator \u2014 Do-IT Solutions' },
   { id: 'blog',     icon: '\u{1F4DD}',         label: 'Blog',       winTitle: 'Kladblok \u2014 Do-IT Blog' },
   { id: 'contact',  icon: '\u{1F4E7}',         label: 'Contact',    winTitle: 'Contact \u2014 Do-IT Solutions' },
@@ -1105,6 +1134,27 @@ export default function App() {
           <p>Of u nu 5 of 500 medewerkers heeft {'\u2014'} onze dienstverlening schaalt mee. Nieuwe medewerker? Binnen een dag productief.</p>
         </ReasonCard>
       </ReasonGrid>
+
+      <Separator style={{ margin: '16px 0' }} />
+
+      <p style={{ fontSize: 13, fontWeight: 'bold', color: '#000080', marginBottom: 4 }}>{'\u{1F464}'} De mens achter Do-IT</p>
+
+      <AboutMeCard variant="well">
+        <AboutPhoto src={import.meta.env.BASE_URL + 'benjamin.jpg'} alt="Benjamin" />
+        <AboutText>
+          <h3>Benjamin</h3>
+          <div className="about-role">Oprichter & IT-consultant {'\u2022'} 10 jaar ervaring</div>
+          <p>
+            Ik ben Benjamin, 29 jaar en inmiddels ruim 10 jaar actief in de ICT. Ik zie mezelf als een <strong>sociale ICT{'\u2019'}er</strong> {'\u2014'} iemand die niet alleen de techniek regelt, maar ook graag meedenkt en samenwerkt met mensen.
+          </p>
+          <p style={{ marginTop: 6 }}>
+            Mijn doel? IT niet alleen laten w{'\u00E9'}rken, maar het ook <strong>begrijpelijk</strong> maken. Geen jargon, geen ingewikkelde verhalen {'\u2014'} gewoon heldere uitleg en oplossingen die passen bij uw bedrijf.
+          </p>
+          <p style={{ marginTop: 6 }}>
+            Mijn focus ligt op de <strong>Microsoft-omgeving</strong>: Microsoft 365, Azure, security en alles wat daarbij komt kijken. Van kleine ZZP{'\u2019'}er tot groeiend MKB {'\u2014'} ik help u graag verder.
+          </p>
+        </AboutText>
+      </AboutMeCard>
     </div>
   );
 
