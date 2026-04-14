@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
+import { ThemeProvider } from 'styled-components';
 import { marked } from 'marked';
 import {
   Window,
@@ -19,6 +20,26 @@ import {
 } from 'react95';
 import posts from './posts';
 
+import original from 'react95/dist/themes/original';
+import rose from 'react95/dist/themes/rose';
+import rainyDay from 'react95/dist/themes/rainyDay';
+import tokyoDark from 'react95/dist/themes/tokyoDark';
+import vaporTeal from 'react95/dist/themes/vaporTeal';
+import hotdogStand from 'react95/dist/themes/hotdogStand';
+import matrix from 'react95/dist/themes/matrix';
+import lilac from 'react95/dist/themes/lilac';
+
+const THEMES = [
+  { theme: original,    name: 'Klassiek',      desktop: '#008080', accent: '#000080' },
+  { theme: rose,        name: 'Roze',          desktop: '#8B4564', accent: '#8B2252' },
+  { theme: rainyDay,    name: 'Regendag',      desktop: '#4a5568', accent: '#2d3748' },
+  { theme: tokyoDark,   name: 'Tokyo Dark',    desktop: '#1a1a2e', accent: '#e94560' },
+  { theme: vaporTeal,   name: 'Vapor Teal',    desktop: '#006666', accent: '#008B8B' },
+  { theme: hotdogStand, name: 'Hotdog Stand',  desktop: '#ff0000', accent: '#ffff00' },
+  { theme: matrix,      name: 'Matrix',        desktop: '#0a0a0a', accent: '#00ff00' },
+  { theme: lilac,       name: 'Lila',          desktop: '#554466', accent: '#663399' },
+];
+
 /* ================================================================== */
 /*  STYLED COMPONENTS                                                  */
 /* ================================================================== */
@@ -26,13 +47,74 @@ import posts from './posts';
 const Desktop = styled.div`
   width: 100vw;
   height: 100vh;
-  background: #008080;
+  background: ${({ $bg }) => $bg || '#008080'};
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px 16px 48px 16px;
   overflow: hidden;
   position: relative;
+  transition: background 0.4s ease;
+`;
+
+/* ---- Error Dialog ---- */
+
+const ErrorOverlay = styled.div`
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+`;
+
+const ErrorWindow = styled(Window)`
+  width: 420px;
+  max-width: 90vw;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.5);
+`;
+
+const ErrorHeader = styled(WindowHeader)`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 4px 3px 8px;
+  background: #000080;
+`;
+
+const ErrorBody = styled(WindowContent)`
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  align-items: flex-start;
+`;
+
+const ErrorIcon = styled.span`
+  font-size: 36px;
+  flex-shrink: 0;
+  line-height: 1;
+`;
+
+const ErrorText = styled.div`
+  font-size: 12px;
+  line-height: 1.6;
+  color: #000;
+`;
+
+const ErrorLink = styled.span`
+  color: #000080;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: bold;
+  &:hover { color: #0000ff; }
+`;
+
+const ErrorActions = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px 14px;
 `;
 
 const MainWindow = styled(Window)`
@@ -183,25 +265,6 @@ const HomeSection = styled(Panel)`
   }
 `;
 
-const PricingCheckRow = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 8px;
-`;
-
-const PricingCheckItem = styled.label`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  cursor: default;
-  padding: 2px 0;
-  border-bottom: 1px dotted #dfdfdf;
-  &:last-child { border-bottom: none; }
-  .price { margin-left: auto; font-weight: bold; color: #000080; font-size: 11px; }
-`;
-
 const ServiceLink = styled.button`
   display: flex;
   align-items: center;
@@ -219,16 +282,6 @@ const ServiceLink = styled.button`
   &:last-child { border-bottom: none; }
   &:hover { background: #000080; color: #fff; }
   .s-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
-`;
-
-const PriceTotal = styled.div`
-  text-align: right;
-  padding-top: 6px;
-  border-top: 2px solid #808080;
-  margin-top: 4px;
-  .total-label { font-size: 10px; color: #555; }
-  .total-price { font-size: 18px; font-weight: bold; color: #000080; }
-  .total-sub { font-size: 9px; color: #888; }
 `;
 
 /* ---- Diensten ---- */
@@ -309,15 +362,6 @@ const SubItemInfo = styled.div`
   .sub-desc { font-size: 10px; color: #555; line-height: 1.4; margin-top: 1px; }
 `;
 
-const SubItemPrice = styled.span`
-  font-size: 11px;
-  font-weight: bold;
-  color: #000080;
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-top: 1px;
-`;
-
 /* ---- Waarom ---- */
 
 const ReasonGrid = styled.div`
@@ -333,24 +377,122 @@ const ReasonCard = styled(GroupBox)`
   p { font-size: 12px; line-height: 1.5; margin: 0; }
 `;
 
-/* ---- Prijzen ---- */
+/* ---- Prijzen Calculator ---- */
 
-const PriceCenter = styled.div`
-  max-width: 460px; margin: 0 auto; text-align: center;
-  .price-tag { font-size: 40px; font-weight: bold; color: #000080; margin: 4px 0; }
-  .price-sub { font-size: 12px; color: #555; margin-bottom: 10px; }
-  @media (max-width: 600px) { .price-tag { font-size: 32px; } }
+const CalcWrap = styled.div`
+  max-width: 560px;
+  margin: 0 auto;
 `;
 
-const FeatureList = styled.div`
-  text-align: left; margin: 0 auto; max-width: 380px;
-`;
-
-const FeatureItem = styled.div`
-  font-size: 12px; padding: 3px 0; display: flex; align-items: center; gap: 6px;
+const CalcRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
   border-bottom: 1px dotted #c0c0c0;
   &:last-child { border-bottom: none; }
-  .ck { color: green; font-weight: bold; }
+`;
+
+const CalcLabel = styled.div`
+  flex: 1;
+  .calc-name { font-size: 12px; font-weight: bold; }
+  .calc-desc { font-size: 10px; color: #555; margin-top: 1px; }
+  .calc-tier { font-size: 9px; color: #888; margin-top: 1px; font-style: italic; }
+`;
+
+const CalcPrice = styled.span`
+  font-size: 12px;
+  font-weight: bold;
+  color: ${({ $active }) => ($active ? '#000080' : '#aaa')};
+  white-space: nowrap;
+  min-width: 60px;
+  text-align: right;
+`;
+
+const CalcTotal = styled(Panel)`
+  padding: 12px;
+  margin-top: 12px;
+  text-align: center;
+  .total-amount { font-size: 32px; font-weight: bold; color: #000080; }
+  .total-sub { font-size: 11px; color: #555; margin-top: 2px; }
+  .yearly { font-size: 12px; color: green; font-weight: bold; margin-top: 4px; }
+`;
+
+const UserCountWrap = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  .user-label { font-size: 12px; font-weight: bold; color: #000080; }
+  .user-count { font-size: 20px; font-weight: bold; color: #000080; min-width: 40px; text-align: center; }
+`;
+
+const SliderWrap = styled.div`
+  flex: 1;
+  input[type="range"] {
+    width: 100%;
+    height: 20px;
+    -webkit-appearance: none;
+    background: transparent;
+    &::-webkit-slider-track {
+      height: 4px;
+      background: #c0c0c0;
+      border: 1px inset #808080;
+    }
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 20px;
+      background: #c0c0c0;
+      border: 2px outset #dfdfdf;
+      border-right-color: #808080;
+      border-bottom-color: #808080;
+      cursor: pointer;
+      margin-top: -9px;
+    }
+    &::-moz-range-track {
+      height: 4px;
+      background: #c0c0c0;
+      border: 1px inset #808080;
+    }
+    &::-moz-range-thumb {
+      width: 14px;
+      height: 20px;
+      background: #c0c0c0;
+      border: 2px outset #dfdfdf;
+      border-right-color: #808080;
+      border-bottom-color: #808080;
+      cursor: pointer;
+    }
+  }
+`;
+
+const CompareBar = styled(Panel)`
+  padding: 10px 12px;
+  margin-top: 10px;
+  .compare-title { font-size: 11px; font-weight: bold; color: #000080; margin-bottom: 6px; }
+`;
+
+const CompareRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  padding: 3px 0;
+  border-bottom: 1px dotted #dfdfdf;
+  &:last-child { border-bottom: none; }
+  .compare-label { color: #444; }
+  .compare-value { font-weight: bold; }
+  .compare-save { color: green; font-weight: bold; }
+`;
+
+const FaqItem = styled.div`
+  padding: 8px 0;
+  border-bottom: 1px dotted #c0c0c0;
+  &:last-child { border-bottom: none; }
+  .faq-q { font-size: 12px; font-weight: bold; color: #000080; margin-bottom: 4px; cursor: pointer; }
+  .faq-q:hover { text-decoration: underline; }
+  .faq-a { font-size: 11px; color: #444; line-height: 1.5; }
 `;
 
 /* ---- Blog (Notepad thema) ---- */
@@ -487,7 +629,7 @@ const NAV = [
   { id: 'home',     icon: '\u{1F5A5}\uFE0F', label: 'Home',       winTitle: 'Do-IT Solutions' },
   { id: 'diensten', icon: '\u{1F4C1}',         label: 'Diensten',   winTitle: 'C:\\Do-IT\\Diensten' },
   { id: 'waarom',   icon: '\u2B50',            label: 'Waarom wij', winTitle: 'Waarom Do-IT Solutions?' },
-  { id: 'prijzen',  icon: '\u{1F4B0}',         label: 'Prijzen',    winTitle: 'Prijzen \u2014 Do-IT All-in-One' },
+  { id: 'prijzen',  icon: '\u{1F4B0}',         label: 'Prijzen',    winTitle: 'Prijscalculator \u2014 Do-IT Solutions' },
   { id: 'blog',     icon: '\u{1F4DD}',         label: 'Blog',       winTitle: 'Kladblok \u2014 Do-IT Blog' },
   { id: 'contact',  icon: '\u{1F4E7}',         label: 'Contact',    winTitle: 'Contact \u2014 Do-IT Solutions' },
 ];
@@ -500,28 +642,28 @@ const SERVICES = [
     short: 'Volledig M365 beheer, licenties en migraties',
     detail: 'Wij beheren uw volledige Microsoft 365 omgeving. Van licenties en gebruikersbeheer tot configuratie, migratie en dagelijkse ondersteuning. Alles zodat uw medewerkers productief kunnen werken.',
     subs: [
-      { name: 'Exchange Online', desc: 'Zakelijke e-mail met 50GB mailbox, gedeelde postvakken, agenda\u2019s en contacten. Inclusief spam- en malwarefiltering.', price: '\u20AC4' },
-      { name: 'SharePoint Online', desc: 'Intranet, teamsites en documentbibliotheken. Ideaal voor interne communicatie en samenwerken aan bestanden.', price: '\u20AC5' },
-      { name: 'OneDrive for Business', desc: 'Persoonlijke cloudopslag (1TB) voor elke medewerker. Bestanden overal beschikbaar en automatisch gesynchroniseerd.', price: '\u20AC3' },
-      { name: 'Microsoft Teams', desc: 'Chat, videovergaderen en samenwerken in \u00E9\u00E9n app. Integratie met alle Microsoft 365 apps.', price: '\u20AC4' },
-      { name: 'M365 Apps', desc: 'Word, Excel, PowerPoint, Outlook \u2014 desktop- en webversies. Altijd de nieuwste versie, op maximaal 5 apparaten.', price: '\u20AC10' },
-      { name: 'Exclaimer', desc: 'Professionele, centraal beheerde e-mailhandtekeningen voor de hele organisatie. Inclusief marketing banners en disclaimers.', price: '\u20AC2' },
-      { name: 'Gebruikersbeheer', desc: 'On- en offboarding, licentietoewijzing, wachtwoordresets en MFA-configuratie. Wij regelen het.', price: '\u20AC3' },
+      { name: 'Exchange Online', desc: 'Zakelijke e-mail met 50GB mailbox, gedeelde postvakken, agenda\u2019s en contacten. Inclusief spam- en malwarefiltering.' },
+      { name: 'SharePoint Online', desc: 'Intranet, teamsites en documentbibliotheken. Ideaal voor interne communicatie en samenwerken aan bestanden.' },
+      { name: 'OneDrive for Business', desc: 'Persoonlijke cloudopslag (1TB) voor elke medewerker. Bestanden overal beschikbaar en automatisch gesynchroniseerd.' },
+      { name: 'Microsoft Teams', desc: 'Chat, videovergaderen en samenwerken in \u00E9\u00E9n app. Integratie met alle Microsoft 365 apps.' },
+      { name: 'M365 Apps', desc: 'Word, Excel, PowerPoint, Outlook \u2014 desktop- en webversies. Altijd de nieuwste versie, op maximaal 5 apparaten.' },
+      { name: 'Exclaimer', desc: 'Professionele, centraal beheerde e-mailhandtekeningen voor de hele organisatie. Inclusief marketing banners en disclaimers.' },
+      { name: 'Gebruikersbeheer', desc: 'On- en offboarding, licentietoewijzing, wachtwoordresets en MFA-configuratie. Wij regelen het.' },
     ],
   },
   {
     id: 'security',
     icon: '\u{1F512}',
-    label: 'Cybersecurity',
+    label: 'Security',
     short: 'Microsoft Defender, e-mailbeveiliging en awareness',
     detail: 'Bescherm uw bedrijf tegen cyberdreigingen met bewezen Microsoft security-oplossingen. Wij configureren, monitoren en reageren zodat u veilig kunt werken.',
     subs: [
-      { name: 'Microsoft Defender for Business', desc: 'Endpoint Detection & Response (EDR) voor al uw apparaten. Realtime bescherming tegen malware, ransomware en geavanceerde dreigingen.', price: '\u20AC8' },
-      { name: 'E-mailbeveiliging', desc: 'Geavanceerde anti-phishing, anti-spam en Safe Links/Safe Attachments. Blokkeert schadelijke e-mails voordat ze uw inbox bereiken.', price: '\u20AC3' },
-      { name: 'Patchbeheer', desc: 'Automatische updates voor Windows, Office en drivers. Wij testen en deployen patches zodat systemen altijd up-to-date zijn.', price: '\u20AC3' },
-      { name: 'Darkweb monitoring', desc: 'Continue monitoring of inloggegevens van uw organisatie op het darkweb zijn gelekt. Direct melding bij een hit.', price: '\u20AC2' },
-      { name: 'Security awareness training', desc: 'Online trainingen en gesimuleerde phishing-campagnes voor uw medewerkers. De mens is vaak de zwakste schakel.', price: '\u20AC2' },
-      { name: 'Conditional Access & MFA', desc: 'Afdwingen van multi-factor authenticatie en locatie-/apparaatgebaseerde toegangsregels voor uw Microsoft 365 omgeving.', price: '\u20AC2' },
+      { name: 'Microsoft Defender for Business', desc: 'Endpoint Detection & Response (EDR) voor al uw apparaten. Realtime bescherming tegen malware, ransomware en geavanceerde dreigingen.' },
+      { name: 'E-mailbeveiliging', desc: 'Geavanceerde anti-phishing, anti-spam en Safe Links/Safe Attachments. Blokkeert schadelijke e-mails voordat ze uw inbox bereiken.' },
+      { name: 'Patchbeheer', desc: 'Automatische updates voor Windows, Office en drivers. Wij testen en deployen patches zodat systemen altijd up-to-date zijn.' },
+      { name: 'Darkweb monitoring', desc: 'Continue monitoring of inloggegevens van uw organisatie op het darkweb zijn gelekt. Direct melding bij een hit.' },
+      { name: 'Security awareness training', desc: 'Online trainingen en gesimuleerde phishing-campagnes voor uw medewerkers. De mens is vaak de zwakste schakel.' },
+      { name: 'Conditional Access & MFA', desc: 'Afdwingen van multi-factor authenticatie en locatie-/apparaatgebaseerde toegangsregels voor uw Microsoft 365 omgeving.' },
     ],
   },
   {
@@ -531,11 +673,11 @@ const SERVICES = [
     short: 'On-prem naar cloud, NAS, backup en continu\u00EFteit',
     detail: 'Wij helpen u veilig en soepel naar de cloud. Of het nu gaat om een migratie vanuit een lokale omgeving, het inrichten van cloudbackups of het waarborgen van bedrijfscontinu\u00EFteit. Wij doen g\u00E9\u00E9n serverbeheer \u2014 wij brengen u naar de cloud.',
     subs: [
-      { name: 'On-premises naar cloud migratie', desc: 'Volledige migratie van uw lokale bestanden, e-mail en applicaties naar Microsoft 365 en Azure. Inclusief planning en begeleiding.', price: 'offerte' },
-      { name: 'Cloud backup', desc: 'Automatische backup van uw Microsoft 365 data (mailboxen, SharePoint, OneDrive, Teams). Dagelijks, met snelle restores.', price: '\u20AC5' },
-      { name: 'NAS & opslagoplossingen', desc: 'Inrichting en beheer van netwerkopslag (NAS) voor lokale backup, archivering of hybride cloudscenario\u2019s.', price: '\u20AC15/apparaat' },
-      { name: 'Tenant continu\u00EFteit', desc: 'Bescherm uw Microsoft 365 tenant tegen uitval. Redundante configuratie en noodtoegang zodat u altijd bij uw data kunt.', price: '\u20AC3' },
-      { name: 'Disaster recovery planning', desc: 'Draaiboek voor wanneer het mis gaat: herstelprocedures, prioriteiten en regelmatig testen. Zodat u snel weer operationeel bent.', price: '\u20AC4' },
+      { name: 'On-premises naar cloud migratie', desc: 'Volledige migratie van uw lokale bestanden, e-mail en applicaties naar Microsoft 365 en Azure. Inclusief planning en begeleiding.' },
+      { name: 'Cloud backup', desc: 'Automatische backup van uw Microsoft 365 data (mailboxen, SharePoint, OneDrive, Teams). Dagelijks, met snelle restores.' },
+      { name: 'NAS & opslagoplossingen', desc: 'Inrichting en beheer van netwerkopslag (NAS) voor lokale backup, archivering of hybride cloudscenario\u2019s.' },
+      { name: 'Tenant continu\u00EFteit', desc: 'Bescherm uw Microsoft 365 tenant tegen uitval. Redundante configuratie en noodtoegang zodat u altijd bij uw data kunt.' },
+      { name: 'Disaster recovery planning', desc: 'Draaiboek voor wanneer het mis gaat: herstelprocedures, prioriteiten en regelmatig testen. Zodat u snel weer operationeel bent.' },
     ],
   },
   {
@@ -545,10 +687,10 @@ const SERVICES = [
     short: 'AVG/GDPR, beleid en audit-ready rapportages',
     detail: 'Voldoe aan wet- en regelgeving zonder zorgen. Wij implementeren en bewaken de juiste technische en organisatorische maatregelen zodat u audit-ready bent.',
     subs: [
-      { name: 'AVG/GDPR implementatie', desc: 'Technische maatregelen om te voldoen aan de privacywetgeving: dataclassificatie, retentiebeleid en verwerkersovereenkomsten.', price: '\u20AC4' },
-      { name: 'Beveiligingsbeleid', desc: 'Opstellen van IT-beveiligingsbeleid, wachtwoordbeleid, acceptabel gebruik en incidentresponsplannen.', price: '\u20AC3' },
-      { name: 'Data Loss Prevention (DLP)', desc: 'Voorkom dat gevoelige informatie per ongeluk buiten de organisatie wordt gedeeld via e-mail, Teams of OneDrive.', price: '\u20AC3' },
-      { name: 'Audit-ready rapportages', desc: 'Maandelijkse rapportages over beveiliging, compliance-status en aanbevelingen. Klaar voor elke audit.', price: '\u20AC3' },
+      { name: 'AVG/GDPR implementatie', desc: 'Technische maatregelen om te voldoen aan de privacywetgeving: dataclassificatie, retentiebeleid en verwerkersovereenkomsten.' },
+      { name: 'Beveiligingsbeleid', desc: 'Opstellen van IT-beveiligingsbeleid, wachtwoordbeleid, acceptabel gebruik en incidentresponsplannen.' },
+      { name: 'Data Loss Prevention (DLP)', desc: 'Voorkom dat gevoelige informatie per ongeluk buiten de organisatie wordt gedeeld via e-mail, Teams of OneDrive.' },
+      { name: 'Audit-ready rapportages', desc: 'Maandelijkse rapportages over beveiliging, compliance-status en aanbevelingen. Klaar voor elke audit.' },
     ],
   },
   {
@@ -558,12 +700,11 @@ const SERVICES = [
     short: 'UniFi WiFi, firewalls, VPN en bekabeling',
     detail: 'Een betrouwbaar bedrijfsnetwerk is de ruggengraat van uw organisatie. Wij werken met UniFi enterprise-grade hardware voor WiFi en netwerken, en zorgen voor een veilige en snelle infrastructuur.',
     subs: [
-      { name: 'UniFi WiFi', desc: 'Professionele WiFi-dekking met UniFi access points. Centraal beheerd via de UniFi Controller. Gasten-netwerk, VLAN\u2019s en roaming inbegrepen.', price: '\u20AC25/locatie' },
-      { name: 'UniFi netwerkswitches', desc: 'Managed switches voor een gestructureerd en snel bedrijfsnetwerk. Met PoE, VLAN-segmentatie en monitoring.', price: '\u20AC20/locatie' },
-      { name: 'Firewall & beveiliging', desc: 'UniFi Security Gateway of Dream Machine voor netwerkbeveiliging, IDS/IPS, en traffic management.', price: '\u20AC35/locatie' },
-      { name: 'VPN-toegang', desc: 'Veilige VPN-verbinding voor thuiswerkers en vestigingen. Altijd beveiligd verbonden met het bedrijfsnetwerk.', price: '\u20AC5' },
-      { name: 'VoIP-telefonie', desc: 'Internettelefonie (VoIP) met integratie in Teams of standalone. Flexibel, schaalbaar en kosteneffici\u00EBnt.', price: '\u20AC8' },
-      { name: 'Bekabeling & inrichting', desc: 'Professionele netwerkkabeling (Cat6/Cat6a), patchpanelen en serverkasten. Netjes en toekomstbestendig.', price: 'offerte' },
+      { name: 'UniFi WiFi', desc: 'Professionele WiFi-dekking met UniFi access points. Centraal beheerd via de UniFi Controller. Gasten-netwerk, VLAN\u2019s en roaming inbegrepen.' },
+      { name: 'UniFi netwerkswitches', desc: 'Managed switches voor een gestructureerd en snel bedrijfsnetwerk. Met PoE, VLAN-segmentatie en monitoring.' },
+      { name: 'Firewall & beveiliging', desc: 'UniFi Security Gateway of Dream Machine voor netwerkbeveiliging, IDS/IPS, en traffic management.' },
+      { name: 'VPN-toegang', desc: 'Veilige VPN-verbinding voor thuiswerkers en vestigingen. Altijd beveiligd verbonden met het bedrijfsnetwerk.' },
+      { name: 'Bekabeling & inrichting', desc: 'Professionele netwerkkabeling (Cat6/Cat6a), patchpanelen en serverkasten. Netjes en toekomstbestendig.' },
     ],
   },
   {
@@ -573,21 +714,24 @@ const SERVICES = [
     short: 'Power Automate, Copilot en slimme workflows',
     detail: 'Maak uw bedrijf slimmer met automatisering en AI-integraties. Bespaar tijd op repetitief werk en laat technologie het zware werk doen.',
     subs: [
-      { name: 'Power Automate workflows', desc: 'Automatiseer terugkerende taken: goedkeuringsflows, notificaties, data-synchronisatie tussen apps. Geen code nodig.', price: '\u20AC5' },
-      { name: 'Microsoft Copilot', desc: 'AI-assistent ge\u00EFntegreerd in Word, Excel, Outlook en Teams. Laat AI e-mails samenvatten, documenten opstellen en data analyseren.', price: '\u20AC28' },
-      { name: 'Power BI rapportages', desc: 'Interactieve dashboards en rapportages vanuit uw bedrijfsdata. Inzicht in realtime, automatisch bijgewerkt.', price: '\u20AC8' },
-      { name: 'Chatbots & klantinteractie', desc: 'AI-gestuurde chatbots voor uw website of Teams. Beantwoord veelgestelde vragen automatisch, 24/7.', price: 'offerte' },
-      { name: 'Documentverwerking', desc: 'Automatische verwerking van facturen, formulieren en documenten met AI. Van papier naar digitaal in seconden.', price: 'offerte' },
+      { name: 'Power Automate workflows', desc: 'Automatiseer terugkerende taken: goedkeuringsflows, notificaties, data-synchronisatie tussen apps. Geen code nodig.' },
+      { name: 'Microsoft Copilot', desc: 'AI-assistent ge\u00EFntegreerd in Word, Excel, Outlook en Teams. Laat AI e-mails samenvatten, documenten opstellen en data analyseren.' },
+      { name: 'Chatbots & klantinteractie', desc: 'AI-gestuurde chatbots voor uw website of Teams. Beantwoord veelgestelde vragen automatisch, 24/7.' },
+      { name: 'Documentverwerking', desc: 'Automatische verwerking van facturen, formulieren en documenten met AI. Van papier naar digitaal in seconden.' },
     ],
   },
 ];
 
-const PRICING_OPTIONS = [
-  { id: 'apps',     label: 'M365 Apps (Word, Excel, PowerPoint, Outlook, Teams)', price: 15 },
-  { id: 'endpoint', label: 'Endpoint bescherming (Defender)',                      price: 8 },
-  { id: 'email',    label: 'E-mailbeveiliging & anti-phishing',                    price: 3 },
-  { id: 'support',  label: 'Support & helpdesk',                                   price: 17 },
+/* Calculator pricing tiers — each builds on the previous (cumulative) */
+const CALC_OPTIONS = [
+  { id: 'mailbox',    name: 'Exchange Mailbox',       desc: '50GB postvak, gedeelde agenda\u2019s, contacten en postvakken',   tier: 'Microsoft 365 Exchange Online Plan 1',    price: 5.50 },
+  { id: 'apps',       name: 'Office Apps',             desc: 'Word, Excel, PowerPoint, Outlook, Teams \u2014 desktop + web',    tier: 'Upgrade naar Microsoft 365 Business Standard', price: 7.50 },
+  { id: 'security',   name: 'Beveiliging',             desc: 'Defender EDR, anti-phishing, Conditional Access, Intune MDM',     tier: 'Upgrade naar Microsoft 365 Business Premium',  price: 9.50 },
+  { id: 'rmm',        name: 'RMM & Monitoring',        desc: 'Remote monitoring, patchbeheer, proactief onderhoud 24/7',        tier: 'Do-IT beheerplatform',                         price: 5.00 },
+  { id: 'support',    name: 'Support & Helpdesk',      desc: 'Onbeperkt tickets, on/offboarding, direct contact met een technicus', tier: 'Do-IT managed support',                    price: 12.50 },
 ];
+
+const INTERNAL_IT_COST = 4500; // Gemiddelde kosten interne ICT'er per maand (incl. werkgeverslasten)
 
 const WA_LINK = 'https://wa.me/31651419202';
 
@@ -602,8 +746,17 @@ export default function App() {
   const [form, setForm] = useState({ naam: '', email: '', telefoon: '', bericht: '' });
   const [sent, setSent] = useState(false);
   const [activeDienst, setActiveDienst] = useState('m365');
-  const [pricingChecks, setPricingChecks] = useState({ apps: true, endpoint: true, email: true, support: true });
   const [activePost, setActivePost] = useState(null);
+  const [calcChecks, setCalcChecks] = useState({ mailbox: true, apps: true, security: true, rmm: true, support: true });
+  const [userCount, setUserCount] = useState(5);
+  const [billingYearly, setBillingYearly] = useState(false);
+  const [openFaq, setOpenFaq] = useState(null);
+  const [themeIndex, setThemeIndex] = useState(0);
+  const [showError, setShowError] = useState(false);
+
+  const currentTheme = THEMES[themeIndex];
+  const cycleTheme = () => setThemeIndex((i) => (i + 1) % THEMES.length);
+  const cycleThemeBack = () => setThemeIndex((i) => (i - 1 + THEMES.length) % THEMES.length);
 
   useEffect(() => { const t = setInterval(() => setClock(new Date()), 30000); return () => clearInterval(t); }, []);
 
@@ -613,8 +766,12 @@ export default function App() {
   const go = (id) => { setPage(id); setStartOpen(false); };
   const cur = NAV.find((n) => n.id === page);
   const chg = (f) => (e) => setForm((p) => ({ ...p, [f]: e.target.value }));
-  const togglePrice = (id) => setPricingChecks((p) => ({ ...p, [id]: !p[id] }));
-  const totalPrice = PRICING_OPTIONS.reduce((sum, o) => sum + (pricingChecks[o.id] ? o.price : 0), 0);
+  const toggleCalc = (id) => setCalcChecks((p) => ({ ...p, [id]: !p[id] }));
+
+  const pricePerUser = CALC_OPTIONS.reduce((sum, o) => sum + (calcChecks[o.id] ? o.price : 0), 0);
+  const monthlyPrice = pricePerUser * Math.min(userCount, 50);
+  const yearlyDiscount = 0.10;
+  const effectiveMonthly = billingYearly ? monthlyPrice * (1 - yearlyDiscount) : monthlyPrice;
 
   const submit = () => {
     if (!form.naam || !form.email || !form.bericht) { alert('Vul a.u.b. naam, email en bericht in.'); return; }
@@ -651,7 +808,6 @@ export default function App() {
       <Separator style={{ marginBottom: 12 }} />
 
       <HomeGrid>
-        {/* Left column: services (shown first on mobile) */}
         <HomeSection variant="well" style={{ order: 1 }}>
           <h3>{'\u{1F4C1}'} Onze diensten</h3>
           {SERVICES.map((s) => (
@@ -666,9 +822,7 @@ export default function App() {
           <Button size="sm" style={{ marginTop: 8, width: '100%' }} onClick={() => go('diensten')}>{'\u{1F4C1}'} Alle diensten bekijken</Button>
         </HomeSection>
 
-        {/* Right column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, order: 2 }}>
-          {/* Waarom wij */}
           <HomeSection variant="well">
             <h3>{'\u2B50'} Waarom Do-IT?</h3>
             <div style={{ fontSize: 11, lineHeight: 1.5, color: '#444' }}>
@@ -681,7 +835,6 @@ export default function App() {
             <Button size="sm" style={{ marginTop: 8, width: '100%' }} onClick={() => go('waarom')}>{'\u2B50'} Meer over waarom wij</Button>
           </HomeSection>
 
-          {/* Contact block */}
           <HomeSection variant="well">
             <h3>{'\u{1F4E8}'} Contact</h3>
             <p style={{ fontSize: 11, lineHeight: 1.5, margin: '0 0 8px', color: '#444' }}>
@@ -720,12 +873,11 @@ export default function App() {
               <div className="sub-name">{sub.name}</div>
               <div className="sub-desc">{sub.desc}</div>
             </SubItemInfo>
-            <SubItemPrice>{sub.price}{sub.price !== 'offerte' && '/mnd'}</SubItemPrice>
           </SubItemRow>
         ))}
         <div style={{ marginTop: 12, display: 'flex', gap: 6 }}>
           <Button size="sm" primary onClick={() => go('contact')}>{'\u{1F4E8}'} Offerte aanvragen</Button>
-          <Button size="sm" onClick={() => window.open(WA_LINK + '?text=' + encodeURIComponent('Hallo Do-IT! Ik heb een vraag over ' + activeService.label + '.'), '_blank')}>{'\u{1F4AC}'} WhatsApp</Button>
+          <Button size="sm" onClick={() => go('prijzen')}>{'\u{1F4B0}'} Prijscalculator</Button>
         </div>
       </DienstenContent>
     </DienstenLayout>
@@ -765,41 +917,155 @@ export default function App() {
     </div>
   );
 
-  const Prijzen = () => (
-    <PriceCenter>
-      <Panel variant="well" style={{ padding: 16 }}>
-        <p style={{ fontSize: 14, fontWeight: 'bold', color: '#000080' }}>Do-IT All-in-One Pakket</p>
-        <div className="price-tag">{'\u20AC'}50</div>
-        <p className="price-sub">per gebruiker / per maand (excl. BTW)</p>
-        <Separator />
-        <FeatureList style={{ marginTop: 14 }}>
-          {[
-            'Microsoft 365 beheer (Outlook, Teams, SharePoint, OneDrive)',
-            'Microsoft Defender for Business (EDR)',
-            'Patchbeheer & automatische updates',
-            'E-mailbeveiliging & anti-phishing',
-            'Cloud backup & disaster recovery',
-            'Helpdesk \u2014 onbeperkt tickets indienen',
-            'Proactieve monitoring 24/7',
-            'Maandelijkse rapportage & review',
-            'AVG-compliant werken',
-            'On- en offboarding van medewerkers',
-          ].map((f) => (
-            <FeatureItem key={f}><span className="ck">{'\u2714'}</span>{f}</FeatureItem>
-          ))}
-        </FeatureList>
-        <Separator style={{ margin: '14px 0' }} />
-        <p style={{ fontSize: 12, color: '#666' }}>
-          Minimum 3 gebruikers {'\u2022'} Geen langlopend contract {'\u2022'} Maandelijks opzegbaar
+  const Prijzen = () => {
+    const showContact50 = userCount >= 50;
+    return (
+      <CalcWrap>
+        <p style={{ fontSize: 13, marginBottom: 10, lineHeight: 1.5 }}>
+          Bereken wat uw IT per medewerker kost. Vink aan wat u nodig heeft.
         </p>
-      </Panel>
-      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 18 }}>
-        <Button size="lg" primary onClick={() => go('contact')}>{'\u{1F4E8}'} Vraag een offerte aan</Button>
-        <Button size="lg" onClick={() => window.open(WA_LINK + '?text=Hallo%20Do-IT!%20Ik%20wil%20graag%20een%20offerte.', '_blank')}>{'\u{1F4AC}'} WhatsApp ons</Button>
-      </div>
-      <p style={{ fontSize: 12, marginTop: 12, color: '#666' }}>Meer dan 50 gebruikers? Neem contact op voor maatwerk.</p>
-    </PriceCenter>
-  );
+
+        {/* User count slider */}
+        <Panel variant="well" style={{ padding: '8px 12px', marginBottom: 12 }}>
+          <UserCountWrap>
+            <span className="user-label">{'\u{1F465}'} Aantal gebruikers:</span>
+            <Button size="sm" square onClick={() => setUserCount(Math.max(1, userCount - 1))} disabled={userCount <= 1}>-</Button>
+            <span className="user-count">{userCount}</span>
+            <Button size="sm" square onClick={() => setUserCount(Math.min(50, userCount + 1))} disabled={userCount >= 50}>+</Button>
+          </UserCountWrap>
+          <SliderWrap>
+            <input type="range" min="1" max="50" value={userCount} onChange={(e) => setUserCount(Number(e.target.value))} />
+          </SliderWrap>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#888', marginTop: 2 }}>
+            <span>1 (ZZP)</span>
+            <span>10</span>
+            <span>25</span>
+            <span>50+</span>
+          </div>
+        </Panel>
+
+        {showContact50 && (
+          <Panel variant="well" style={{ padding: 12, marginBottom: 12, background: '#ffffcc' }}>
+            <p style={{ fontSize: 12, margin: 0, fontWeight: 'bold', color: '#000080' }}>{'\u{1F4DE}'} 50+ gebruikers? Neem contact op voor maatwerk!</p>
+            <p style={{ fontSize: 11, margin: '4px 0 8px', color: '#555' }}>Bij grote organisaties maken wij een pakket op maat met volumekorting.</p>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <Button size="sm" primary onClick={() => go('contact')}>{'\u{1F4E8}'} Contact opnemen</Button>
+              <Button size="sm" onClick={() => window.open(WA_LINK + '?text=Hallo%20Do-IT!%20Ik%20heb%2050%2B%20gebruikers%20en%20wil%20graag%20een%20offerte.', '_blank')}>{'\u{1F4AC}'} WhatsApp</Button>
+            </div>
+          </Panel>
+        )}
+
+        {/* Service checkboxes */}
+        <Panel variant="well" style={{ padding: '8px 12px' }}>
+          {CALC_OPTIONS.map((o) => (
+            <CalcRow key={o.id}>
+              <Checkbox
+                checked={calcChecks[o.id]}
+                onChange={() => toggleCalc(o.id)}
+                label=""
+                style={{ marginRight: -4, flexShrink: 0 }}
+              />
+              <CalcLabel>
+                <div className="calc-name">{o.name}</div>
+                <div className="calc-desc">{o.desc}</div>
+                <div className="calc-tier">{o.tier}</div>
+              </CalcLabel>
+              <CalcPrice $active={calcChecks[o.id]}>{'\u20AC'}{o.price.toFixed(2)}</CalcPrice>
+            </CalcRow>
+          ))}
+        </Panel>
+
+        {/* Billing toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
+          <Checkbox checked={billingYearly} onChange={() => setBillingYearly(!billingYearly)} label="" style={{ marginRight: -4 }} />
+          <span style={{ fontSize: 12 }}>Jaarlijks betalen</span>
+          {billingYearly && <span style={{ fontSize: 11, color: 'green', fontWeight: 'bold' }}>-10% korting!</span>}
+        </div>
+
+        {/* Total */}
+        <CalcTotal variant="well">
+          <div style={{ fontSize: 11, color: '#555' }}>{userCount} gebruiker{userCount !== 1 ? 's' : ''} {'\u00D7'} {'\u20AC'}{pricePerUser.toFixed(2)} p/m</div>
+          <div className="total-amount">{'\u20AC'}{effectiveMonthly.toFixed(2)}</div>
+          <div className="total-sub">per maand {'\u2022'} excl. BTW</div>
+          {billingYearly && <div className="yearly">Jaarlijks: {'\u20AC'}{(effectiveMonthly * 12).toFixed(2)} {'\u2022'} U bespaart {'\u20AC'}{(monthlyPrice * 12 * yearlyDiscount).toFixed(2)} per jaar</div>}
+        </CalcTotal>
+
+        {/* Comparison */}
+        <CompareBar variant="well">
+          <div className="compare-title">{'\u{1F4CA}'} Vergelijk met een interne ICT{'\u2019'}er</div>
+          <CompareRow>
+            <span className="compare-label">Interne ICT{'\u2019'}er (gemiddeld)</span>
+            <span className="compare-value">{'\u20AC'}{INTERNAL_IT_COST.toLocaleString('nl-NL')}/mnd</span>
+          </CompareRow>
+          <CompareRow>
+            <span className="compare-label">Do-IT Solutions ({userCount} gebruikers)</span>
+            <span className="compare-value">{'\u20AC'}{effectiveMonthly.toFixed(2)}/mnd</span>
+          </CompareRow>
+          <CompareRow>
+            <span className="compare-label">U bespaart</span>
+            <span className="compare-save">{'\u20AC'}{Math.max(0, INTERNAL_IT_COST - effectiveMonthly).toFixed(2)}/mnd</span>
+          </CompareRow>
+        </CompareBar>
+
+        {/* CTA */}
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 14 }}>
+          <Button size="lg" primary onClick={() => go('contact')}>{'\u{1F4E8}'} Offerte aanvragen</Button>
+          <Button size="lg" onClick={() => window.open(WA_LINK + '?text=Hallo%20Do-IT!%20Ik%20wil%20graag%20een%20offerte.', '_blank')}>{'\u{1F4AC}'} WhatsApp</Button>
+        </div>
+
+        {/* FAQ */}
+        <Separator style={{ margin: '16px 0 12px' }} />
+        <p style={{ fontSize: 13, fontWeight: 'bold', color: '#000080', marginBottom: 8 }}>Veelgestelde vragen</p>
+
+        <FaqItem>
+          <div className="faq-q" onClick={() => setOpenFaq(openFaq === 'contract' ? null : 'contract')}>{openFaq === 'contract' ? '\u25BC' : '\u25B6'} Ben ik gebonden aan een langlopend contract?</div>
+          {openFaq === 'contract' && (
+            <div className="faq-a">
+              Nee! U kunt <strong>maandelijks opzeggen</strong>. Wij geloven dat u bij ons blijft omdat u tevreden bent, niet omdat u vast zit aan een contract.
+              Kiest u voor <strong>jaarlijkse betaling</strong>? Dan krijgt u 10% korting. Maar ook dat is geen verplichting.
+            </div>
+          )}
+        </FaqItem>
+
+        <FaqItem>
+          <div className="faq-q" onClick={() => setOpenFaq(openFaq === 'minimum' ? null : 'minimum')}>{openFaq === 'minimum' ? '\u25BC' : '\u25B6'} Is er een minimum aantal gebruikers?</div>
+          {openFaq === 'minimum' && (
+            <div className="faq-a">
+              Nee, het minimum is <strong>1 gebruiker</strong>. Wij helpen ZZP{'\u2019'}ers, starters, MKB en grote organisaties. Iedereen verdient professionele IT.
+              Bij <strong>50+ gebruikers</strong> maken wij een pakket op maat met volumekorting.
+            </div>
+          )}
+        </FaqItem>
+
+        <FaqItem>
+          <div className="faq-q" onClick={() => setOpenFaq(openFaq === 'licenties' ? null : 'licenties')}>{openFaq === 'licenties' ? '\u25BC' : '\u25B6'} Zijn Microsoft licenties inbegrepen?</div>
+          {openFaq === 'licenties' && (
+            <div className="faq-a">
+              Ja. De prijzen zijn <strong>inclusief Microsoft licenties</strong>. U betaalt {'\u00E9\u00E9'}n bedrag aan ons en wij regelen alles: licenties, configuratie, beheer en support.
+            </div>
+          )}
+        </FaqItem>
+
+        <FaqItem>
+          <div className="faq-q" onClick={() => setOpenFaq(openFaq === 'opzeggen' ? null : 'opzeggen')}>{openFaq === 'opzeggen' ? '\u25BC' : '\u25B6'} Hoe werkt opzeggen?</div>
+          {openFaq === 'opzeggen' && (
+            <div className="faq-a">
+              Opzeggen kan <strong>per maand</strong> met een opzegtermijn van 1 maand. Wij helpen u netjes met de overdracht van uw data en licenties. U zit nergens aan vast.
+            </div>
+          )}
+        </FaqItem>
+
+        <FaqItem>
+          <div className="faq-q" onClick={() => setOpenFaq(openFaq === 'wat' ? null : 'wat')}>{openFaq === 'wat' ? '\u25BC' : '\u25B6'} Wat als ik niet alles nodig heb?</div>
+          {openFaq === 'wat' && (
+            <div className="faq-a">
+              U kiest zelf wat u nodig heeft met de calculator hierboven. Heeft u alleen een mailbox nodig? Dan betaalt u alleen voor de mailbox. Wij dwingen geen pakketten af.
+            </div>
+          )}
+        </FaqItem>
+      </CalcWrap>
+    );
+  };
 
   const Contact = () => (
     <>
@@ -910,15 +1176,16 @@ export default function App() {
   const PageComponent = pages[page];
 
   return (
+    <ThemeProvider theme={currentTheme.theme}>
     <>
-      <Desktop onClick={() => startOpen && setStartOpen(false)}>
+      <Desktop $bg={currentTheme.desktop} onClick={() => startOpen && setStartOpen(false)}>
         <MainWindow>
           <StyledWindowHeader>
             <HeaderTitle>{cur.icon} {cur.winTitle}</HeaderTitle>
             <HeaderButtons>
-              <Button size="sm" square disabled><span style={{ fontSize: 10 }}>{'\u25C1'}</span></Button>
-              <Button size="sm" square disabled><span style={{ fontSize: 10 }}>{'\u25A1'}</span></Button>
-              <Button size="sm" square><CloseIcon /></Button>
+              <Button size="sm" square onClick={cycleThemeBack} title="Vorig thema"><span style={{ fontSize: 10 }}>{'\u2014'}</span></Button>
+              <Button size="sm" square onClick={cycleTheme} title={`Thema: ${currentTheme.name}`}><span style={{ fontSize: 10 }}>{'\u25A1'}</span></Button>
+              <Button size="sm" square onClick={() => setShowError(true)}><CloseIcon /></Button>
             </HeaderButtons>
           </StyledWindowHeader>
 
@@ -934,6 +1201,47 @@ export default function App() {
             <PageComponent />
           </ScrollContent>
         </MainWindow>
+
+        {showError && (
+          <ErrorOverlay onClick={() => setShowError(false)}>
+            <ErrorWindow onClick={(e) => e.stopPropagation()}>
+              <ErrorHeader>
+                <span style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>{'\u26A0\uFE0F'} Do-IT Solutions</span>
+                <Button size="sm" square onClick={() => setShowError(false)} style={{ minWidth: 20, minHeight: 20 }}>
+                  <CloseIcon />
+                </Button>
+              </ErrorHeader>
+              <ErrorBody>
+                <ErrorIcon>{'\u274C'}</ErrorIcon>
+                <ErrorText>
+                  <p style={{ margin: '0 0 8px', fontWeight: 'bold' }}>
+                    Deze applicatie kan niet worden afgesloten.
+                  </p>
+                  <p style={{ margin: '0 0 8px' }}>
+                    Er is een onherstelbare fout opgetreden in <strong>explorer.exe</strong>.
+                    Het systeem is afhankelijk van Do-IT Solutions om correct te functioneren.
+                  </p>
+                  <p style={{ margin: '0 0 4px' }}>
+                    Neem{' '}
+                    <ErrorLink onClick={() => { setShowError(false); go('contact'); }}>
+                      contact op met de IT-beheerder
+                    </ErrorLink>
+                    {' '}als dit probleem zich blijft voordoen.
+                  </p>
+                  <p style={{ margin: '8px 0 0', fontSize: 10, color: '#888' }}>
+                    Foutcode: 0x0044_4F49_5421 | Module: doitsolutions.dll
+                  </p>
+                </ErrorText>
+              </ErrorBody>
+              <ErrorActions>
+                <Button onClick={() => setShowError(false)} style={{ minWidth: 90 }}>OK</Button>
+                <Button onClick={() => { setShowError(false); go('contact'); }} style={{ minWidth: 90 }} primary>
+                  {'\u{1F4E7}'} Contact IT
+                </Button>
+              </ErrorActions>
+            </ErrorWindow>
+          </ErrorOverlay>
+        )}
       </Desktop>
 
       <TaskBarFixed>
@@ -969,5 +1277,6 @@ export default function App() {
         )}
       </TaskBarFixed>
     </>
+    </ThemeProvider>
   );
 }
